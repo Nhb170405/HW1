@@ -1,6 +1,6 @@
 import random
 from typing import Optional
-from dataclass import dataclass
+from dataclasses import dataclass
 import logging
 
 @dataclass
@@ -12,7 +12,7 @@ class Cell:
     def __init__(self, is_mine=False):
         self.is_mine = is_mine
 
-class MineSweeper:
+class MinesweeperLogic:
     rows: int = 8
     cols: int = 8
     num_mines: Optional[int] = 10
