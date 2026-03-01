@@ -1,7 +1,7 @@
 # Import thư viện đồ họa (ví dụ: tkinter)
 import tkinter as tk
-from tkinter import messagebox
 from functools import partial
+from logic import MinesweeperLogic
 
 class MinesweeperGUI:
     def __init__(self, master, logic_engine):
@@ -19,8 +19,30 @@ class MinesweeperGUI:
         Gắn sự kiện click chuột trái vào hàm on_left_click.
         Gắn sự kiện click chuột phải vào hàm on_right_click.
         """
+        # Top bar with status + restart
+        if hasattr(self, 'top_bar') and self.top_bar:
+            self.top_bar.destroy()
+        self.top_bar = tk.Frame(self.master)
+        self.top_bar.pack(padx=8, pady=(8, 2), fill='x')
+
+        self.status_label = tk.Label(self.top_bar, text='Playing', anchor='w')
+        self.status_label.pack(side='left')
+
+        # Restart button with icon
+        restart_icon = '🔁'
+        self.restart_btn = tk.Button(self.top_bar, text=restart_icon, command=self.restart, width=3)
+        self.restart_btn.pack(side='right')
+
+        # Grid frame
+        if hasattr(self, 'frame') and self.frame:
+            self.frame.destroy()
         self.frame = tk.Frame(self.master)
         self.frame.pack(padx=8, pady=8)
+
+        # store initial params for restart
+        self._init_rows = self.logic.rows
+        self._init_cols = self.logic.cols
+        self._init_mines = getattr(self.logic, 'num_mines', None)
 
         for r in range(self.logic.rows):
             for c in range(self.logic.cols):
@@ -31,7 +53,7 @@ class MinesweeperGUI:
                 btn.grid(row=r, column=c)
                 self.buttons[(r, c)] = btn
 
-        # Track whether we've already shown end-game dialog to avoid repeats
+        # Track whether we've already shown end-game state on UI
         self._notified_game_end = False
         self._sync_ui_with_logic()
 
@@ -66,6 +88,28 @@ class MinesweeperGUI:
             toggled = False
         if toggled:
             self._sync_ui_with_logic()
+
+    def restart(self):
+        """Restart the game: recreate logic and UI."""
+        # recreate logic instance with same params
+        try:
+            self.logic = MinesweeperLogic(rows=self._init_rows, cols=self._init_cols, num_mines=self._init_mines)
+        except Exception:
+            # fallback: attempt to call __init__ on existing instance
+            try:
+                self.logic.__init__(self._init_rows, self._init_cols, self._init_mines)
+            except Exception:
+                pass
+
+        # reset buttons dict and recreate grid
+        for b in list(self.buttons.values()):
+            try:
+                b.destroy()
+            except Exception:
+                pass
+        self.buttons.clear()
+        self._notified_game_end = False
+        self._create_grid()
 
     def _sync_ui_with_logic(self):
         """
@@ -103,10 +147,13 @@ class MinesweeperGUI:
                     else:
                         btn.config(text='')
 
-        # end-game notifications
+        # end-game notifications shown on status label
         if getattr(self.logic, 'win', False) and not getattr(self, '_notified_game_end', False):
             self._notified_game_end = True
-            messagebox.showinfo("You win!", "Chúc mừng — bạn đã thắng!")
+            # update status label
+            if hasattr(self, 'status_label'):
+                self.status_label.config(text='Bạn đã thắng! 🎉', fg='green')
         elif getattr(self.logic, 'game_over', False) and not getattr(self, '_notified_game_end', False):
             self._notified_game_end = True
-            messagebox.showinfo("Game Over", "Bạn đã dẫm phải mìn — trò chơi kết thúc.")
+            if hasattr(self, 'status_label'):
+                self.status_label.config(text='Bạn thua 💥', fg='red')
