@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Minesweeper</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+    <!-- SCREEN: MENU -->
+    <div id="screen-menu" class="screen active">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="bg-pattern"></div>
+        <div class="menu-container">
+            <div class="menu-header">
+                <div class="menu-icon"><span class="material-icons-round">flag</span></div>
+                <h1 class="menu-title">Minesweeper</h1>
+                <p class="menu-subtitle">Chọn Chế Độ Chơi</p>
+            </div>
+            <div class="difficulty-list">
+                <button class="difficulty-btn" data-level="easy" onclick="startGame('easy')">
+                    <div class="diff-left">
+                        <div class="diff-icon green"><span class="material-icons-round">eco</span></div>
+                        <div class="diff-info">
+                            <h3>Dễ</h3>
+                            <p>Lưới 5×5</p>
+                        </div>
+                    </div>
+                    <span class="material-icons-round diff-arrow">chevron_right</span>
+                </button>
+                <button class="difficulty-btn" data-level="medium" onclick="startGame('medium')">
+                    <div class="diff-left">
+                        <div class="diff-icon yellow"><span class="material-icons-round">sentiment_satisfied</span>
+                        </div>
+                        <div class="diff-info">
+                            <h3>Trung bình</h3>
+                            <p>Lưới 9×9</p>
+                        </div>
+                    </div>
+                    <span class="material-icons-round diff-arrow">chevron_right</span>
+                </button>
+                <button class="difficulty-btn" data-level="hard" onclick="startGame('hard')">
+                    <div class="diff-left">
+                        <div class="diff-icon orange"><span class="material-icons-round">whatshot</span></div>
+                        <div class="diff-info">
+                            <h3>Khó</h3>
+                            <p>Lưới 12×12</p>
+                        </div>
+                    </div>
+                    <span class="material-icons-round diff-arrow">chevron_right</span>
+                </button>
+                <button class="difficulty-btn" data-level="expert" onclick="startGame('expert')">
+                    <div class="diff-left">
+                        <div class="diff-icon red"><span class="material-icons-round">coronavirus</span></div>
+                        <div class="diff-info">
+                            <h3>Siêu khó</h3>
+                            <p>Lưới 20×20</p>
+                        </div>
+                    </div>
+                    <span class="material-icons-round diff-arrow">chevron_right</span>
+                </button>
+                <button class="difficulty-btn" data-level="custom" onclick="showScreen('screen-custom')">
+                    <div class="diff-left">
+                        <div class="diff-icon purple"><span class="material-icons-round">tune</span></div>
+                        <div class="diff-info">
+                            <h3>Tùy chỉnh</h3>
+                            <p>5×5 đến 30×30</p>
+                        </div>
+                    </div>
+                    <span class="material-icons-round diff-arrow">chevron_right</span>
+                </button>
+            </div>
+            <div class="menu-footer-btns">
+                <button class="footer-btn" onclick="showScreen('screen-leaderboard')"><span
+                        class="material-icons-round">leaderboard</span><span>Thành tích</span></button>
+                <button class="footer-btn" onclick="showScreen('screen-settings')"><span
+                        class="material-icons-round">settings</span><span>Cài đặt</span></button>
+            </div>
+            <div class="version-text">Phiên bản 2.1.0</div>
+        </div>
+    </div>
+
+    <!-- SCREEN: CUSTOM MODE -->
+    <div id="screen-custom" class="screen">
+        <div class="settings-container">
+            <div class="settings-header">
+                <button class="top-btn" onclick="showScreen('screen-menu')"><span
+                        class="material-icons-round">arrow_back_ios_new</span> Quay lại</button>
+                <h2>Tùy chỉnh</h2>
+                <div style="width:60px"></div>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <label class="setting-label">Kích thước bàn (n × n)</label>
+                    <input type="range" id="custom-size" min="5" max="30" value="10" class="custom-slider"
+                        oninput="updateCustomInfo()" />
+                    <div class="custom-display"><span id="custom-size-val">10</span> × <span
+                            id="custom-size-val2">10</span></div>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Số bom: <span id="custom-mines-val">16</span></label>
+                    <input type="range" id="custom-mines" min="1" max="50" value="16" class="custom-slider"
+                        oninput="updateCustomInfo()" />
+                    <p class="custom-hint" id="custom-hint">Tối đa: 50 bom</p>
+                </div>
+                <button class="result-btn primary-btn" style="margin-top:16px" onclick="startCustomGame()">
+                    <span class="material-icons-round">play_arrow</span> Bắt đầu chơi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: GAME -->
+    <div id="screen-game" class="screen">
+        <div class="game-container">
+            <div class="game-top-bar">
+                <button class="top-btn" onclick="showScreen('screen-menu')"><span
+                        class="material-icons-round">arrow_back_ios_new</span> Back</button>
+                <span class="level-label" id="level-label">MEDIUM</span>
+                <button class="top-btn" onclick="showScreen('screen-settings')"><span
+                        class="material-icons-round">settings</span></button>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item stat-mines">
+                    <div class="stat-value"><span class="material-icons-round">flag</span><span
+                            id="mine-count">010</span></div><span class="stat-label">Mines</span>
+                </div>
+                <div class="stat-item stat-emoji"><button class="emoji-btn" id="emoji-btn" onclick="resetGame()"><span
+                            class="material-icons-round">sentiment_satisfied_alt</span></button></div>
+                <div class="stat-item stat-timer">
+                    <div class="stat-value"><span class="material-icons-round">timer</span><span
+                            id="timer-display">000</span></div><span class="stat-label">Time</span>
+                </div>
+            </div>
+            <div class="grid-wrapper">
+                <div class="grid-container" id="game-grid"></div>
+            </div>
+            <div class="bottom-toolbar">
+                <div class="toolbar-inner">
+                    <button class="tool-btn active" id="btn-reveal" onclick="setMode('reveal')"><span
+                            class="material-icons-round">hardware</span><span>Reveal</span></button>
+                    <button class="tool-btn" id="btn-flag" onclick="setMode('flag')"><span
+                            class="material-icons-round">flag</span><span>Flag</span></button>
+                </div>
+            </div>
+        </div>
+        <div class="web-sidebar">
+            <div class="sidebar-card">
+                <h3>Thông tin</h3>
+                <div class="sidebar-stat"><span class="material-icons-round">flag</span><span>Mìn: <b
+                            id="sidebar-mines">10</b></span></div>
+                <div class="sidebar-stat"><span class="material-icons-round">timer</span><span>Thời gian: <b
+                            id="sidebar-time">0s</b></span></div>
+                <div class="sidebar-stat"><span class="material-icons-round">grid_on</span><span>Cấp độ: <b
+                            id="sidebar-level">9×9</b></span></div>
+            </div>
+            <div class="sidebar-card">
+                <h3>Chế độ</h3>
+                <div class="sidebar-tools">
+                    <button class="sidebar-tool-btn active" id="sb-reveal" onclick="setMode('reveal')"><span
+                            class="material-icons-round">hardware</span> Reveal</button>
+                    <button class="sidebar-tool-btn" id="sb-flag" onclick="setMode('flag')"><span
+                            class="material-icons-round">flag</span> Flag</button>
+                </div>
+            </div>
+            <button class="sidebar-new-game" onclick="resetGame()"><span class="material-icons-round">refresh</span> Ván
+                mới</button>
+            <button class="sidebar-back" onclick="showScreen('screen-menu')"><span
+                    class="material-icons-round">home</span> Về menu</button>
+        </div>
+    </div>
+
+    <!-- SCREEN: SETTINGS -->
+    <div id="screen-settings" class="screen">
+        <div class="settings-container">
+            <div class="settings-header">
+                <button class="top-btn" onclick="goBackFromSettings()"><span
+                        class="material-icons-round">arrow_back_ios_new</span> Quay lại</button>
+                <h2>Cài đặt</h2>
+                <div style="width:60px"></div>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <label class="setting-label">Giao diện</label>
+                    <div class="theme-picker">
+                        <button class="theme-opt" data-theme="light" onclick="setTheme('light')"><span
+                                class="material-icons-round">light_mode</span> Sáng</button>
+                        <button class="theme-opt" data-theme="dark" onclick="setTheme('dark')"><span
+                                class="material-icons-round">dark_mode</span> Tối</button>
+                        <button class="theme-opt" data-theme="system" onclick="setTheme('system')"><span
+                                class="material-icons-round">settings_suggest</span> Hệ thống</button>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Kiểu bàn chơi</label>
+                    <div class="theme-picker">
+                        <button class="style-opt" data-style="classic" onclick="setBoardStyle('classic')"><span
+                                class="material-icons-round">grid_view</span> Classic</button>
+                        <button class="style-opt" data-style="matrix" onclick="setBoardStyle('matrix')"><span
+                                class="material-icons-round">terminal</span> Matrix</button>
+                        <button class="style-opt" data-style="wooden" onclick="setBoardStyle('wooden')"><span
+                                class="material-icons-round">park</span> Wooden</button>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Kiểu bom</label>
+                    <div class="theme-picker">
+                        <button class="bomb-opt" data-bomb="bomb" onclick="setBombStyle('bomb')">💣 Bomb</button>
+                        <button class="bomb-opt" data-bomb="star" onclick="setBombStyle('star')">⭐ Star</button>
+                        <button class="bomb-opt" data-bomb="skull" onclick="setBombStyle('skull')">💀 Skull</button>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Màu số</label>
+                    <div class="theme-picker">
+                        <button class="numcolor-opt" data-numcolor="classic" onclick="setNumColor('classic')"><span
+                                style="color:#2563eb;font-weight:800">1</span><span
+                                style="color:#16a34a;font-weight:800">2</span><span
+                                style="color:#dc2626;font-weight:800">3</span> Classic</button>
+                        <button class="numcolor-opt" data-numcolor="neon" onclick="setNumColor('neon')"><span
+                                style="color:#0ff;font-weight:800">1</span><span
+                                style="color:#0f0;font-weight:800">2</span><span
+                                style="color:#f0f;font-weight:800">3</span> Neon</button>
+                        <button class="numcolor-opt" data-numcolor="pastel" onclick="setNumColor('pastel')"><span
+                                style="color:#93c5fd;font-weight:800">1</span><span
+                                style="color:#86efac;font-weight:800">2</span><span
+                                style="color:#fca5a5;font-weight:800">3</span> Pastel</button>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <div class="setting-row">
+                        <div><span class="material-icons-round">volume_up</span><label class="setting-label">Âm
+                                thanh</label></div>
+                        <label class="toggle-switch"><input type="checkbox" id="sound-toggle" checked
+                                onchange="toggleSound()" /><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="volume-row" id="sfx-volume-row">
+                        <span class="material-icons-round" onclick="setSfxVolume(0)">volume_mute</span>
+                        <input type="range" class="volume-slider" id="sfx-volume" min="0" max="100" value="50"
+                            oninput="onSfxVolumeChange(this.value)" />
+                        <span class="volume-val" id="sfx-volume-val">50%</span>
+                        <span class="material-icons-round" onclick="setSfxVolume(100)">volume_up</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <div class="setting-row">
+                        <div><span class="material-icons-round">music_note</span><label class="setting-label">Nhạc
+                                nền</label></div>
+                        <label class="toggle-switch"><input type="checkbox" id="music-toggle"
+                                onchange="toggleMusic()" /><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="volume-row" id="music-volume-row">
+                        <span class="material-icons-round" onclick="setMusicVolume(0)">volume_mute</span>
+                        <input type="range" class="volume-slider" id="music-volume" min="0" max="100" value="30"
+                            oninput="onMusicVolumeChange(this.value)" />
+                        <span class="volume-val" id="music-volume-val">30%</span>
+                        <span class="material-icons-round" onclick="setMusicVolume(100)">volume_up</span>
+                    </div>
+                    <div class="music-info paused" id="music-info">
+                        <span class="material-icons-round">equalizer</span>
+                        <span id="music-status">Nhạc nền đang tắt</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <div class="setting-row">
+                        <div><span class="material-icons-round">vibration</span><label
+                                class="setting-label">Rung</label></div>
+                        <label class="toggle-switch"><input type="checkbox" id="vibrate-toggle" checked
+                                onchange="toggleVibrate()" /><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+                <div class="about-box">
+                    <span class="material-icons-round">info</span>
+                    <div>
+                        <p class="about-title">Minesweeper - Homework 1</p>
+                        <p class="about-sub">AI Introduction - HCMUT</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: LEADERBOARD -->
+    <div id="screen-leaderboard" class="screen">
+        <div class="settings-container">
+            <div class="settings-header">
+                <button class="top-btn" onclick="showScreen('screen-menu')"><span
+                        class="material-icons-round">arrow_back_ios_new</span> Quay lại</button>
+                <h2>Thành tích</h2>
+                <div style="width:60px"></div>
+            </div>
+            <div class="settings-body">
+                <div id="leaderboard-content"></div>
+                <button class="result-btn danger-btn" style="margin-top:20px" onclick="resetScores()"><span
+                        class="material-icons-round">delete_forever</span> Đặt lại thành tích</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: WIN -->
+    <div id="screen-win" class="screen">
+        <div class="result-bg"></div>
+        <div class="result-container">
+            <div class="result-top">
+                <div class="confetti-wrap">
+                    <div class="trophy-circle win-trophy"><span
+                            class="material-icons-round trophy-icon">emoji_events</span></div>
+                </div>
+                <h1 class="result-title win-title">CHÚC MỪNG!</h1>
+                <p class="result-sub">Bạn đã hoàn thành xuất sắc màn chơi này!</p>
+            </div>
+            <div class="result-stats">
+                <div class="result-stat-main">
+                    <div><span class="result-stat-label">Điểm số</span><span class="result-stat-value"
+                            id="win-score">1200</span></div>
+                    <div class="result-stat-icon"><span class="material-icons-round">military_tech</span></div>
+                </div>
+                <div class="result-stat-row">
+                    <div class="result-stat-card"><span class="material-icons-round">timer</span><span
+                            class="result-stat-card-label">Thời gian</span><span class="result-stat-card-val"
+                            id="win-time">01:45</span></div>
+                    <div class="result-stat-card"><span class="material-icons-round">flag</span><span
+                            class="result-stat-card-label">Số mìn</span><span class="result-stat-card-val"
+                            id="win-mines">10/10</span></div>
+                </div>
+            </div>
+            <div class="result-actions">
+                <button class="result-btn primary-btn" onclick="resetGame()"><span
+                        class="material-icons-round">replay</span> Chơi lại</button>
+                <button class="result-btn secondary-btn" onclick="showScreen('screen-menu')"><span
+                        class="material-icons-round">home</span> Về trang chủ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: LOSE -->
+    <div id="screen-lose" class="screen">
+        <div class="result-bg lose-bg"></div>
+        <div class="loss-overlay"></div>
+        <div class="result-container">
+            <div class="result-top">
+                <div class="confetti-wrap">
+                    <div class="glow-red"></div>
+                    <div class="lose-circle">
+                        <span class="material-icons-round lose-face">sentiment_very_dissatisfied</span>
+                        <span class="material-icons-round explosion-icon">flash_on</span>
+                    </div>
+                </div>
+                <h1 class="result-title lose-title">BẠN ĐÃ THUA!</h1>
+                <p class="result-sub">Rất tiếc, bạn đã dẫm phải mìn.<br />Hãy cẩn thận hơn lần sau nhé!</p>
+            </div>
+            <div class="result-stats">
+                <div class="result-stat-row">
+                    <div class="result-stat-card"><span class="material-icons-round">timer</span><span
+                            class="result-stat-card-label">Thời gian</span><span class="result-stat-card-val"
+                            id="lose-time">00:30</span></div>
+                    <div class="result-stat-card"><span class="material-icons-round">flag</span><span
+                            class="result-stat-card-label">Mìn còn lại</span><span class="result-stat-card-val"
+                            id="lose-mines">5</span></div>
+                </div>
+            </div>
+            <div class="result-actions">
+                <button class="result-btn danger-btn" onclick="resetGame()"><span
+                        class="material-icons-round">refresh</span> Thử lại</button>
+                <button class="result-btn secondary-btn" onclick="showScreen('screen-menu')"><span
+                        class="material-icons-round">home</span> Về trang chủ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal-box">
+            <div class="modal-icon"><span class="material-icons-round">help_outline</span></div>
+            <p class="modal-message" id="confirm-message">Bạn có chắc chắn?</p>
+            <div class="modal-actions">
+                <button class="modal-btn modal-cancel" id="confirm-cancel">Hủy</button>
+                <button class="modal-btn modal-ok" id="confirm-ok">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme toggle floating -->
+    <button class="theme-toggle-float" id="theme-float-btn" onclick="quickToggleTheme()">
+        <span class="material-icons-round" id="theme-float-icon">dark_mode</span>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
