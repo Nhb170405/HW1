@@ -9,7 +9,7 @@ import os
 import webbrowser
 import threading
 
-PORT = 8888
+PORT = int(os.environ.get('PORT', 8888))
 SCORES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scores.json')
 
 def get_scores():
@@ -83,7 +83,7 @@ class MinesweeperHandler(http.server.SimpleHTTPRequestHandler):
         pass  # suppress logs
 
 def run_server(open_browser=True):
-    server = http.server.HTTPServer(('127.0.0.1', PORT), MinesweeperHandler)
+    server = http.server.HTTPServer(('0.0.0.0', PORT), MinesweeperHandler)
     print(f'Minesweeper server running at http://127.0.0.1:{PORT}')
     if open_browser:
         threading.Timer(0.5, lambda: webbrowser.open(f'http://127.0.0.1:{PORT}/index.html')).start()
